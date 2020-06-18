@@ -115,8 +115,8 @@ Esta classe mantêm os dados dos empregados na memória da aplicação. Ou seja,
   class EmployeesRepository {
       static idCount = 0;
       static dados = [];
-      constructor(repository) {
-          this.repository = repository;
+      
+      constructor() {
           if (!this.idCount) this.idCount = 0;
           if (!this.dados) this.dados = [];
       }
