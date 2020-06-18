@@ -4,7 +4,7 @@
 
 Nesta etapa será implementada uma WebAPI simples, utilizando o NodeJS.
 
-Consulte as [referências](#referencias) para mais informações sobre NodeJS.
+Consulte as [referências](#referências) para mais informações sobre NodeJS.
 
 
 ---
@@ -28,8 +28,8 @@ As operações esperadas na WebAPI são:
 
 #### Criando a estrutura básica do projeto com o framework express
 
-- Crie um novo diretório para o seu projeto e abra o VSCode neste diretório:
-  Pela linha de comando ficaria:
+- Crie um novo diretório para o seu projeto e abra o VSCode neste diretório.
+  > Pela linha de comando ficaria:
   ```console
   cd c:\temp
   mkdir rest-ai-employees
@@ -45,7 +45,7 @@ As operações esperadas na WebAPI são:
   ```console
   npm install express cors body-parser --save
   ```
-  > observe que os pacotes foram incluídos no arquivo **package.json**]
+  > observe que os pacotes foram incluídos no arquivo **package.json**
 - Adicione a linha ```"start": "node index.js"``` no arquivo **package.json**:
   ```json
   ...
@@ -102,298 +102,218 @@ As operações esperadas na WebAPI são:
     > Abra seu navegador web e acesse http://localhost:3000/
 
 
-#### Criando a rota da API
+#### Criando a classe de persitência dos dados em memória: EmployeesRepositoryMemory
  
-- Crie a classe Employees.cs no diretório Domain\Models com o seguinte código:
-  ```csharp
-  namespace RestApiEmployees.Domain.Models
-  {
-      public class Employee
-      {
-          public int Id { get; set; }
-          public string Name { get; set; }
-          public decimal? Salary { get; set; }
-          public int? Age { get; set; }
-          public string ProfileImage { get; set; }
+Esta classe mantêm os dados dos empregados na memória da aplicação. Ou seja, caso a aplicação seja reiniciada, os dados são perdidos.
 
-          public Employee()
-          {
-          }
-
-          public Employee(int id, string name, decimal? salary, int? age, string profileImage)
-          {
-              Id = id;
-              Name = name;
-              Salary = salary;
-              Age = age;
-              ProfileImage = profileImage;
-          }
-      }
-  }
-  ```
-
-#### Criando a interface IEmployeesService.cs
-
-Foi utilizado na aplicação o padrão de projeto de Camada de Serviço/ServiceLayer. Consute as [referências](#referencias) para mais informações.
-
-- Organizando diretórios da aplicação:
+- Crie o diretório para organizar seu código:
   ```console
-  mkdir Domain\Services
+  mkdir persistence
   ```
-- Crie a interface IEmployeesService dentro do diretório Domain\Services:
-  ```csharp
-  using System.Collections.Generic;
-  using RestApiEmployees.Domain.Models;
-  namespace RestApiEmployees.Domain.Services
-  {
-      public interface IEmployeesService
-      {
-          List<Employee> ListAll();
-          Employee GetById(int id);
-          void Add(Employee employee);
-          void Update(Employee employee);
-          void DeleteById(int id);
+- Crie o arquivo EmployeesRepositoryMemory.js dentro do diretório persistence:
+  ```js
+  class EmployeesRepository {
+      static idCount = 0;
+      static dados = [];
+      constructor(repository) {
+          this.repository = repository;
+          if (!this.idCount) this.idCount = 0;
+          if (!this.dados) this.dados = [];
       }
-  }
-  ```
 
-#### Criando o controller EmployeesController.cs
-- Crie o controller EmployeesController.cs dentro do diretório Controllers
-  ```csharp
-  using System.Collections.Generic;
-  using Microsoft.AspNetCore.Mvc;
-  using RestApiEmployees.Domain.Models;
-  using RestApiEmployees.Domain.Services;
-  namespace RestApiEmployees.Controllers
-  {
-      [Route("api/[controller]")]
-      [ApiController]
-      public class EmployeesController : ControllerBase
-      {
-          private readonly IEmployeesService service;
-          public EmployeesController(IEmployeesService service)
-          {
-              this.service = service;
-          }
+      findAll = () => {
+          return this.dados;
+      }
 
-          // GET: api/Employees
-          [HttpGet]
-          public List<Employee> Get()
-          {
-              var employees = service.ListAll();
-              return employees;
-          }
+      findById = (id) => {
+          var employees = this.dados.filter(x => x.id == id);
+          if (employees.length > 0)
+              return employees[0];
+          else
+              return null;
+      }
 
-          // GET: api/Employees/5
-          [HttpGet("{id}", Name = "Get")]
-          public ActionResult<Employee> Get(int id)
-          {
-              var employee = service.GetById(id);
-              if (employee != null)
-                  return employee;
-              return NotFound();
-          }
+      add = (employee) => {
+          this.idCount++;
+          employee.id = this.idCount;
+          this.dados.push(employee);
+          return employee;
+      }
 
-          // POST: api/Employees
-          [HttpPost]
-          public Employee Post([FromBody] Employee employee)
-          {
-              service.Add(employee);
+      update = (employee) => {
+          console.log(employee.id);
+          const index = this.dados.findIndex(x => x.id == employee.id);
+          if (index > -1) {
+              this.dados[index] = employee;
               return employee;
           }
+          return null;
+      }
 
-          // PUT: api/Employees/5
-          [HttpPut("{id}")]
-          public ActionResult Put(int id, [FromBody] Employee employee)
-          {
-              var employeeFinded = service.GetById(id);
-              if (employeeFinded == null)
-                  return NotFound();
-              employee.Id = id;
-              service.Update(employee);
-              return Ok(employee);
+      deleteById = (id) => {
+          const index = this.dados.findIndex(x => x.id == id);
+          if (index > -1) {
+              const employee = this.dados[index];
+              this.dados.splice(index, 1);
+              return employee;
           }
-
-          // DELETE: api/Employees/5
-          [HttpDelete("{id}")]
-          public ActionResult Delete(int id)
-          {
-              var employeeFinded = service.GetById(id);
-              if (employeeFinded == null)
-                  return NotFound();
-              service.DeleteById(id);
-              return Ok();
-          }
+          return null;
       }
   }
+  module.exports = new EmployeesRepository();
   ```
 
-#### Criando a interface IEmployeesRepository
+#### Criando a classe de serviço: EmployeesService
+ 
+Esta classe mantêm as regras de negócio da aplicação.
 
-Foi utilizado na aplicação o padrão de projeto Repository para abstrair a camada de dados. Consute as [referências](#referencias) para mais informações.
-
-- Organizando diretórios da aplicação:
+- Crie o diretório para organizar seu código:
   ```console
-  mkdir Domain\Interfaces
+  mkdir services
   ```
-- Crie a interface IEmployeesRepository dentro do diretório Domain\Interfaces:
-  ```csharp
-  using System.Collections.Generic;
-  using RestApiEmployees.Domain.Models;
-  namespace RestApiEmployees.Domain.Interfaces
-  {
-      public interface IEmployeesRepository
-      {
-          List<Employee> ListAll();
-          Employee GetById(int id);
-          void Add(Employee employee);
-          void Update(Employee employee);
-          void DeleteById(int id);
+- Crie o arquivo EmployeesService.js dentro do diretório services:
+  ```js
+  const EmployeesRepository = require('../persistence/EmployeesRepositoryMemory');
+  class EmployeesService {
+      constructor(repository) {
+          this.repository = repository;
+      }
+
+      findAll = () => {
+          //TODO: regras de negocio adicional
+          return this.repository.findAll();
+      }
+
+      findById = (id) => {
+          //TODO: regras de negocio adicional
+          return this.repository.findById(id);
+      }
+
+      add = (employee) => {
+          //TODO: regras de negocio adicional
+          return this.repository.add(employee);
+      }
+
+      update = (employee) => {
+          //TODO: regras de negocio adicional
+          return this.repository.update(employee);
+      }
+
+      deleteById = (id) => {
+          //TODO: regras de negocio adicional
+          return this.repository.deleteById(id);
       }
   }
+  module.exports = new EmployeesService(EmployeesRepository);
   ```
 
 
-#### Implementando a interface IEmployeesService - com a casse EmployeesService
+#### Criando o controller EmployeesController
 
-> Por se tratar de uma aplicação simples não há regras de negócio, mas caso houvessem, estariam aqui.
-> Nesta camada de serviços ficam as regras de negócio. Esta camanda de serviço utiliza os Repositórios para tratar dos dados (buscar, salvar, atualizar, deletar) e também contêm as regras de negócio da aplicação.
+Esta classe é responsável por receber e responder as requisições do usuário.
 
-- Crie a classe EmployeesService, dentro do diretório Domain\Services
-  ```csharp
-  using System.Collections.Generic;
-  using RestApiEmployees.Domain.Interfaces;
-  using RestApiEmployees.Domain.Models;
-  namespace RestApiEmployees.Domain.Services
-  {
-      public class EmployeesService : IEmployeesService
-      {
-          private readonly IEmployeesRepository repository;
-          public EmployeesService(IEmployeesRepository repository)
-          {
-              this.repository = repository;
-          }
-
-          public void Add(Employee employee)
-          {
-              //TODO: regras de negócio, se tiver
-              //Exemplo: enviar email para o RH com os dados do empregado adicionado
-              repository.Add(employee);
-          }
-
-          public void DeleteById(int id)
-          {
-              //TODO: regras de negócio, se tiver
-              repository.DeleteById(id);
-          }
-
-          public Employee GetById(int id)
-          {
-              //TODO: regras de negócio, se tiver
-              return repository.GetById(id);
-          }
-
-          public List<Employee> ListAll()
-          {
-              //TODO: regras de negócio, se tiver
-              return repository.ListAll();
-          }
-
-          public void Update(Employee employee)
-          {
-              //TODO: regras de negócio, se tiver
-              repository.Update(employee);
-          }
-      }
-  }  
-  ```
-
-
-#### Implementando a interface IEmployeesRepository - com a casse EmployeesRepository
-
-Esta camada abstrai o banco de dados.
-
-Neste exemplo, vamos apenas salvar os dados na memória da aplicação. Posteriormente vamos persistir em banco de dados.
-
-- Organizando diretórios da aplicação:
+- Crie o diretório para organizar seu código:
   ```console
-  mkdir Persistence\Memory
+  mkdir controllers
   ```
-- Crie a classe EmployeesRepository dentro do diretório Persistence\Memory:
-  ```csharp
-  using System.Collections.Generic;
-  using System.Linq;
-  using RestApiEmployees.Domain.Interfaces;
-  using RestApiEmployees.Domain.Models;
-  namespace RestApiEmployees.Persistence.Memory
-  {
-      public class EmployeesRepository : IEmployeesRepository
-      {
-          private static int idCount = 1;
-          private Dictionary<int, Employee> employees = new Dictionary<int, Employee>();
+- Crie o arquivo EmployeesController.js dentro do diretório controllers:
+  ```js
+  const express = require('express');
+  const router = express.Router();
+  const service = require('../services/EmployeesService');
 
-          public List<Employee> ListAll()
-          {
-              return employees.Values.ToList();
-          }
+  // GET api/employees
+  router.get('/', (req, res) => {
+      const employees = service.findAll();
+      res.json(employees);
+  });
 
-          public Employee GetById(int id)
-          {
-              if (employees.ContainsKey(id))
-                  return employees[id];
-              else
-                  return null;
-          }
-          public void Add(Employee employee)
-          {
-              employee.Id = idCount++;
-              employees.Add(employee.Id, employee);
-          }
-
-          public void Update(Employee employee)
-          {
-              if (employees.ContainsKey(employee.Id))
-                  employees[employee.Id] = employee;
-          }
-
-          public void DeleteById(int id)
-          {
-              if (employees.ContainsKey(id))
-                  employees.Remove(id);
-          }
+  // GET api/employees/:id
+  router.get('/:id', (req, res) => {
+      const id = req.params.id;
+      const employee = service.findById(id);
+      if (!employee) {
+          return res.status(404).json({ error: 'Employee not found!' })
       }
-  }
+      return res.json(employee);
+  });
+
+  // POST api/employees
+  router.post('/', (req, res) => {
+      const { name = null, profile_image = null } = req.body;
+      const salary = parseFloat(req.body.salary) || null;
+      const age = parseInt(req.body.age) || null;
+      if (!name) {
+          return res.status(400).json({ error: "'name' field is required " });
+      }
+      const employee = { id: null, name, salary, age, profile_image };
+      service.add(employee);
+      return res.json(employee);
+  });
+
+  // PUT api/employees/:id
+  router.put('/:id', (req, res) => {
+      const id = req.params.id;
+      const { name = null, profile_image = null } = req.body;
+      const salary = parseFloat(req.body.salary) || null;
+      const age = parseInt(req.body.age) || null;
+      if (!name) {
+          return res.status(400).json({ error: "'name' field is required " });
+      }
+      const employee = { id, name, salary, age, profile_image };
+      const result = service.update(employee);
+      if (!result) {
+          return res.status(404).json({ error: 'Employee not found!' })
+      }
+      return res.json(result);
+  });
+
+  // DELETE api/employees/:id
+  router.delete('/:id', (req, res) => {
+      const id = req.params.id;
+      const result = service.deleteById(id);
+      if (!result) {
+          return res.status(404).json({ error: 'Employee not found!' })
+      }
+      return res.json(result);
+  });
+
+  module.exports = router;
   ```
 
 
-#### Ajustando a classe Startup.cs, registrando as classes na injeção de dependência
+#### Ajuste o arquivo index.js para utilizar o controller EmployeesController
 
-Consute as [referencias](#referencias) para saber mais sobre Inversão de Controle e Injeção de Dependência.
+- Altere o arquivo index.js com o conteúdo:
+  ```js
+  const express = require('express');
+  const cors = require('cors');
+  const bodyParser = require('body-parser');
+  const EmployeesController = require('./controllers/EmployeesController');
 
-- Altere o método ```ConfigureServices(IServiceCollection services)``` da classe ```Startup.cs```:
-  ```csharp
-  public void ConfigureServices(IServiceCollection services)
-  {
-      services.AddScoped<IEmployeesService, EmployeesService>();
-      services.AddSingleton<IEmployeesRepository, EmployeesRepository>();
-      services.AddControllers();
-  }
+  const app = express();
+  const port = 3000;
+
+  app.use(cors({ origin: true }));
+  app.use(bodyParser.json({ type: 'application/json' }));
+
+  app.get('/', (req, res) => res.send('<h1>rest-api-employees</h1><a href="https://employees38.docs.apiary.io/">Acesse a documentação da API<a>'));
+  app.use('/api/employees', EmployeesController);
+
+  app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`));
   ```
+
 
 #### Execute a aplicação
 
-Nesta etapa vamos compilar e executar a aplicação:
+Nesta etapa vamos compilar e executar a aplicação.
 
-- Para executar a aplicação, basta executar na linha de comando:
-  ```csharp
-  dotnet run
+- Rode a aplicação para verificar se tudo deu certo:
+  ```console
+  npm start
   ```
-  Isto já irá compilar a aplicação (que tbm pode ser compilado com ```dotnet build```) e executá-la.
+  > Abra seu navegador web e acesse http://localhost:3000/
 
-- Você pode pedir ao dotnet já atualizar a aplicação, caso alguma classe seja alterada, rodando a aplicação da seguinte forma:
-  ```csharp
-  dotnet watch run
-  ```
 
 #### Testando a aplicação com o Postman
 
@@ -401,8 +321,7 @@ Para testar os endpoints da aplicação, vamos utilizar o Postman
 
 - Instale o Postman caso ainda não tenha instalado. [Site Postman](https://postman.com/) e consuma os endpoints da aplicação.
 - A aplicação estará rodando nas urls:
-  - http://localhost:5000/api/employees
-  - https://localhost:5001/api/employees
+  - http://localhost:3000/api/employees
 
 
 ---

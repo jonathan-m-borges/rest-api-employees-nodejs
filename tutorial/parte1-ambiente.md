@@ -7,15 +7,14 @@ Nesta etapa será feita a preparação do ambiente de desenvolvimento.
 Serão instalados:
    - NodeJS v12.x.x
    - Visual Studio Code (VSCode)
-   - Extenções/Plugins do Node no VSCode
 
 
 ---
 ### Instalando o NodeJS
 
-Baixe e instale a versão v12 mais atual estável no NodeJS do site [https://nodejs.org/pt-br/download/](https://nodejs.org/pt-br/download/).
+Baixe e instale a versão v12 mais atual estável do NodeJS no site [https://nodejs.org/pt-br/download/](https://nodejs.org/pt-br/download/).
 
-Teste sua instalação, abrindo uma janela de linha de comando no Windows, e digitando os comandos:
+Teste sua instalação, abrindo uma janela de linha de comando no Windows e digitando os comandos:
 ```console
 node --version
 npm --version
