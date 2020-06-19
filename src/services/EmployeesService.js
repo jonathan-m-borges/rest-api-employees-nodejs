@@ -1,34 +1,36 @@
-const EmployeesRepository = require('../persistence/EmployeesRepositoryMemory');
+//const repository = require('../persistence/EmployeesRepositoryMemory');
+const repository = require('../persistence/EmployeesRepositoryPgSql');
+
 
 class EmployeesService {
     constructor(repository) {
         this.repository = repository;
     }
 
-    findAll = () => {
+    findAll = async () => {
         //TODO: regras de negocio adicional
-        return this.repository.findAll();
+        return await this.repository.findAll();
     }
 
-    findById = (id) => {
+    findById = async (id) => {
         //TODO: regras de negocio adicional
-        return this.repository.findById(id);
+        return await this.repository.findById(id);
     }
 
-    add = (employee) => {
+    add = async (employee) => {
         //TODO: regras de negocio adicional
-        return this.repository.add(employee);
+        return await this.repository.add(employee);
     }
 
-    update = (employee) => {
+    update = async (employee) => {
         //TODO: regras de negocio adicional
-        return this.repository.update(employee);
+        return await this.repository.update(employee);
     }
 
-    deleteById = (id) => {
+    deleteById = async (id) => {
         //TODO: regras de negocio adicional
-        return this.repository.deleteById(id);
+        return await this.repository.deleteById(id);
     }
 }
 
-module.exports = new EmployeesService(EmployeesRepository);
+module.exports = new EmployeesService(repository);
