@@ -61,7 +61,7 @@ A recomendação neste tutorial é utilizar o **Postbird**.
 
 - Na linha de comando no diretório raiz da aplicação e execute:
   ```console
-  npm install pg
+  npm install pg --save
   ```
 
 

@@ -12,4 +12,4 @@ Depois, é implementada a persistência dos dados no banco de dados PostgreSQL, 
 - [Passo 1 - Preparação do ambiente](./parte1-ambiente.md)
 - [Passo 2 - Criando a WebAPI](./parte2-criando-webapi.md)
 - [Passo 3 - Persitindo no PostgreSQL - usando SQL](./parte3-persistindo-postgresql.md)
-- [Passo 4 - Persitindo no PostgreSQL - usando EntityFramework](./parte4-persistindo-postgresql-sequelize.md)
+- [Passo 4 - Persitindo no PostgreSQL - usando Sequelize](./parte4-persistindo-postgresql-sequelize.md)
