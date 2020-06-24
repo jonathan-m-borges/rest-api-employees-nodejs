@@ -80,7 +80,7 @@ As operações esperadas na WebAPI são:
   npm start
   ```
   > Abra seu navegador web e acesse http://localhost:3000/
-- Para facilitar o desenvolvimento, é possível carregar a aplicação quando algum arquivo é alterado.
+- Para facilitar o desenvolvimento, é possível recarregar a aplicação quando algum arquivo é alterado.
   - Adicione a biblioteca nodemon:
     ```console
     npm install --save-dev nodemon

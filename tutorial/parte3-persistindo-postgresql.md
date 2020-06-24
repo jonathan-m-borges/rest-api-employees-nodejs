@@ -72,7 +72,7 @@ A recomendação neste tutorial é utilizar o **Postbird**.
   ```console
   mkdir db
   ```
-- Crie o arquivo index.js dentro do diretório db:
+- Crie o arquivo pgSQL.js dentro do diretório db:
   ```js
   const { Pool } = require('pg');
   require('dotenv').config();
@@ -107,7 +107,7 @@ A recomendação neste tutorial é utilizar o **Postbird**.
   ```
 - Crie a classe EmployeesRepositoryPgSql dentro do diretório persistence:
   ```js
-  const db = require('../db');
+  const db = require('../db/pgSQL');
   
   class EmployeesRepositoryPgSql {
       constructor(db) {
@@ -132,7 +132,6 @@ A recomendação neste tutorial é utilizar o **Postbird**.
               [employee.name, employee.salary, employee.age, employee.profile_image]);
           if (result.rows.length > 0) {
               employee.id = result.rows[0].id;
-              console.log(employee);
               return employee;
           }
           else {
@@ -143,7 +142,6 @@ A recomendação neste tutorial é utilizar o **Postbird**.
       update = async (employee) => {
           var result = await db.query('update employees set name=$1, salary=$2, age=$3, profile_image=$4 where id=$5',
               [employee.name, employee.salary, employee.age, employee.profile_image, employee.id]);
-          console.log(result);
           if (result.rowCount > 0)
               return employee;
           else

@@ -12,9 +12,9 @@ Serão instalados:
 ---
 ### Instalando o NodeJS
 
-Baixe e instale a versão v12 mais atual estável do NodeJS no site [https://nodejs.org/pt-br/download/](https://nodejs.org/pt-br/download/).
+Baixe e instale a versão v12 mais atual estável do NodeJS no site [https://nodejs.org/](https://nodejs.org/).
 
-Teste sua instalação, abrindo uma janela de linha de comando no Windows e digitando os comandos:
+Após a instalação, abra uma janela de linha de comando no Windows e digite os comandos abaixo para testar sua instalação:
 ```console
 node --version
 npm --version
