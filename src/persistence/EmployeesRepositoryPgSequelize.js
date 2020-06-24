@@ -1,6 +1,6 @@
 const db = require('../db/pgSequelize');
 
-class EmployeesRepository {
+class EmployeesRepositoryPgSequelize {
     constructor(db) {
         this.db = db;
     }
@@ -40,4 +40,4 @@ class EmployeesRepository {
     }
 }
 
-module.exports = new EmployeesRepository(db);
+module.exports = new EmployeesRepositoryPgSequelize(db);

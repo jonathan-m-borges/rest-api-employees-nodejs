@@ -21,138 +21,130 @@ As bibliotecas **sequelize** e **pg** são necessárias na aplicação.
 
 
 ---
-### Criando a classe EmployeesContext
+### Configurando Sequelize
 
 - Organizando diretórios da aplicação:
   ```console
-  mkdir Persistence\PostgreEF
+  mkdir db
   ```
-- Crie a interface EmployeesContext dentro do diretório Persistence\PostgreEF:
-  ```csharp
-  using Microsoft.EntityFrameworkCore;
-  using RestApiEmployees.Domain.Models;
-  namespace RestApiEmployees.Persistence.PostgreEF
-  {
-      public class EmployeesContext : DbContext
-      {
-          public DbSet<Employee> Employees { get; set; }
-          public EmployeesContext(DbContextOptions options) : base(options)
-          {
-          }
+- Crie o arquivo pgSequelize.js dentro do diretório db:
+  ```js
+  const Sequelize = require('sequelize');
+  require('dotenv').config();
 
-          protected override void OnModelCreating(ModelBuilder modelBuilder)
-          {
-              base.OnModelCreating(modelBuilder);
+  const sequelize = new Sequelize(process.env.PG_CONNECTION_STRING);
 
-              modelBuilder.UseSerialColumns();
+  // model Employee
+  const Employee = sequelize.define("employees", {
+      id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          allowNull: false
+      },
+      name: {
+          type: Sequelize.STRING,
+          allowNull: false
+      },
+      salary: Sequelize.DECIMAL,
+      age: Sequelize.INTEGER,
+      profile_image: Sequelize.STRING
+  }, {
+      timestamps: false // desabilita campos `createdAt` and `updatedAt`
+  });
 
-              modelBuilder.Entity<Employee>().ToTable("employees");
-              modelBuilder.Entity<Employee>().Property(x => x.Id).HasColumnName("id");
-              modelBuilder.Entity<Employee>().Property(x => x.Name).HasColumnName("name");
-              modelBuilder.Entity<Employee>().Property(x => x.Salary).HasColumnName("salary");
-              modelBuilder.Entity<Employee>().Property(x => x.Age).HasColumnName("age");
-              modelBuilder.Entity<Employee>().Property(x => x.ProfileImage).HasColumnName("profile_image");
-          }
-      }
+  //other models...
+  //etc...
+
+  const db = {
+      Employee
   }
-  ```
 
+  module.exports = db;
+  ```
 
 
 ---
-### Criando a classe EmployeesRepositoryEF
+### Criando a classe EmployeesRepositoryPgSequelize
 
 - Organizando diretórios da aplicação:
   ```console
-  mkdir Persistence\PostgreEF
+  mkdir persistence
   ```
-- Crie a interface EmployeesRepositoryEF dentro do diretório Persistence\PostgreEF:
-  ```csharp
-  using System.Collections.Generic;
-  using System.Linq;
-  using RestApiEmployees.Domain.Interfaces;
-  using RestApiEmployees.Domain.Models;
-  namespace RestApiEmployees.Persistence.PostgreEF
-  {
-      public class EmployeeRepositoryEF : IEmployeesRepository
-      {
-          private readonly EmployeesContext context;
-          public EmployeeRepositoryEF(EmployeesContext context)
-          {
-              this.context = context;
-          }
+- Crie o arquivo EmployeesRepositoryPgSequelize.js dentro do diretório persistence:
+  ```js
+  const db = require('../db/pgSequelize');
 
-          public List<Employee> ListAll()
-          {
-              return context.Employees.ToList();
-          }
-
-          public Employee GetById(int id)
-          {
-              var employee = context.Employees.SingleOrDefault(x => x.Id == id);
+  class EmployeesRepositoryPgSequelize {
+      constructor(db) {
+          this.db = db;
+      }
+  
+      findAll = async () => {
+          const result = await this.db.Employee.findAll();
+          return result;
+      }
+  
+      findById = async (id) => {
+          const result = await this.db.Employee.findByPk(id);
+          return result;
+      }
+  
+      add = async (employee) => {
+          const result = await this.db.Employee.create(employee);
+          return result;
+      }
+  
+      update = async (employee) => {
+          const result = await this.db.Employee.update(employee, {
+              where: { id: employee.id }
+          });
+          if (result > 0)
               return employee;
-          }
-
-          public void Add(Employee employee)
-          {
-              context.Employees.Add(employee);
-              context.SaveChanges();
-          }
-
-          public void DeleteById(int id)
-          {
-              var employee = context.Employees.SingleOrDefault(x => x.Id == id);
-              if (employee == null)
-                  return;
-              context.Employees.Remove(employee);
-              context.SaveChanges();
-          }
-
-          public void Update(Employee employee)
-          {
-              var persisted = context.Employees.SingleOrDefault(x => x.Id == employee.Id);
-              if (persisted == null)
-                  return;
-              persisted.Name = employee.Name;
-              persisted.Salary = employee.Salary;
-              persisted.Age = employee.Age;
-              persisted.ProfileImage = employee.ProfileImage;
-              context.SaveChanges();
-          }
+          else
+              return null;
+      }
+  
+      deleteById = async (id) => {
+          const employee = await this.db.Employee.findByPk(id);
+          if (!employee)
+              return null;
+          await this.db.Employee.destroy({ where: { id: id } });
+          return employee;
       }
   }
+  
+  module.exports = new EmployeesRepositoryPgSequelize(db);
   ```
 
 
-#### Ajustando a classe Startup.cs, registrando as classes na injeção de dependência
+---
+### Ajustando a classe EmployeesService para utilizar a classe EmployeesRepositoryPgSequelize
 
-- Altere o método ```ConfigureServices(IServiceCollection services)``` da classe ```Startup.cs```:
-  ```csharp
-  public void ConfigureServices(IServiceCollection services)
-  {
-      services.AddScoped<IEmployeesService, EmployeesService>();
-      services.AddDbContext<EmployeesContext>(options =>
-          options.UseNpgsql(Configuration.GetConnectionString("postgresql")));
-      services.AddScoped<IEmployeesRepository, EmployeesRepositoryEF>();
-      services.AddControllers();
-  }
+- Altere o início do arquivo services\EmployeesService.js:
+  ```js
+  //const repository = require('../persistence/EmployeesRepositoryMemory');
+  //const repository = require('../persistence/EmployeesRepositoryPgSql');
+  const repository = require('../persistence/EmployeesRepositoryPgSequelize');
+  
+  ... continuação...
   ```
 
-#### Execute a aplicação
+
+---
+### Execute a aplicação
 
 Nesta etapa vamos compilar e executar a aplicação:
 
-- Para executar a aplicação, basta executar na linha de comando:
-  ```csharp
-  dotnet run
-  ```
+- Para executar a aplicação, basta executar na linha de comando: ```npm start``` ou ```npm run dev```:
 
-#### Testando a aplicação com o Postman
+
+---
+### Testando a aplicação com o Postman
 
 Para testar os endpoints da aplicação, vamos utilizar o Postman.
 
 Em paralelo, execute os comandos SQL no Postird para verificar que os dados foram persistidos no banco.
-
 
 
 ---

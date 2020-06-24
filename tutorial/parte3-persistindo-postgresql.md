@@ -77,7 +77,9 @@ A recomendação neste tutorial é utilizar o **Postbird**.
   const { Pool } = require('pg');
   require('dotenv').config();
 
-  const pool = new Pool();
+  const pool = new Pool({
+      connectionString: process.env.PG_CONNECTION_STRING
+  });
 
   module.exports = {
       query: (text, params) => pool.query(text, params),
@@ -90,11 +92,7 @@ A recomendação neste tutorial é utilizar o **Postbird**.
 
 - Crie o arquivo .env na raiz do projeto, contendo:
   ```none
-  PGHOST='localhost'
-  PGUSER='postgres'
-  PGDATABASE='employees'
-  PGPASSWORD='postgres'
-  PGPORT=5432
+  PG_CONNECTION_STRING='postgres://postgres:postgres@localhost:5432/employees1'
   ```
 
 
@@ -152,15 +150,15 @@ A recomendação neste tutorial é utilizar o **Postbird**.
           const employee = this.findById(id);
           if (employee == null)
               return null;
-          const result = await db.query('delete from employees where id=$1', [id]);
+          await db.query('delete from employees where id=$1', [id]);
           return employee;
       }
   }
   module.exports = new EmployeesRepositoryPgSql(db);
   ```
 
-
-#### Ajustando a classe EmployeesService para utilizar a classe EmployeesRepositoryPgSql
+---
+### Ajustando a classe EmployeesService para utilizar a classe EmployeesRepositoryPgSql
 
 - Altere o início do arquivo services\EmployeesService.js:
   ```js
@@ -170,16 +168,17 @@ A recomendação neste tutorial é utilizar o **Postbird**.
   ... continuação...
   ```
 
-#### Execute a aplicação
+
+---
+### Execute a aplicação
 
 Nesta etapa vamos compilar e executar a aplicação:
 
-- Para executar a aplicação, basta executar na linha de comando:
-  ```csharp
-  dotnet start
-  ```
+- Para executar a aplicação, basta executar na linha de comando: ```npm start``` ou ```npm run dev```:
 
-#### Testando a aplicação com o Postman
+
+---
+### Testando a aplicação com o Postman
 
 Para testar os endpoints da aplicação, vamos utilizar o Postman.
 

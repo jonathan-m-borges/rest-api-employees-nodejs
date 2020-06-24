@@ -2,7 +2,6 @@ const Sequelize = require('sequelize');
 
 require('dotenv').config();
 
-console.log(process.env.PG_CONNECTION_STRING);
 const sequelize = new Sequelize(process.env.PG_CONNECTION_STRING);
 
 // model Employee

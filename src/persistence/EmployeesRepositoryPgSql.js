@@ -1,6 +1,6 @@
 const db = require('../db/pgSQL');
 
-class EmployeesRepository {
+class EmployeesRepositoryPgSql {
     constructor(db) {
         this.db = db;
     }
@@ -45,9 +45,9 @@ class EmployeesRepository {
         const employee = this.findById(id);
         if (employee == null)
             return null;
-        const result = await db.query('delete from employees where id=$1', [id]);
+        await db.query('delete from employees where id=$1', [id]);
         return employee;
     }
 }
 
-module.exports = new EmployeesRepository(db);
+module.exports = new EmployeesRepositoryPgSql(db);
