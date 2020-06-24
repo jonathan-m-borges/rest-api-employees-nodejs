@@ -1,6 +1,6 @@
 //const repository = require('../persistence/EmployeesRepositoryMemory');
-const repository = require('../persistence/EmployeesRepositoryPgSql');
-
+//const repository = require('../persistence/EmployeesRepositoryPgSql');
+const repository = require('../persistence/EmployeesRepositoryPgSequelize');
 
 class EmployeesService {
     constructor(repository) {
